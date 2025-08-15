@@ -84,7 +84,7 @@ long totals[NUM_FADERS] = {0, 0, 0, 0, 0, 0, 0, 0}; // Running totals
 unsigned long buttonPressTime = 0; // Track button press time
 int activeFader = 0; // Last-touched fader (0-7)
 bool showingFaderID = false; // Track if showing "F1"-"F8"
-unsigned long lastMessage;
+unsigned long lastMessage; // Time that the last MIDI message was sent
 
 // Program mode variables
 int programMode = 0; // 0: off, 1: fader CC, 2: button CC, 3: channel
@@ -133,6 +133,7 @@ void setup() {
 }
 
 void loop() {
+  Serial.println(activeFader);
   // Handle program button
   programButton.update();
   if (programButton.rose()) { //Only trigger button on rising edge
@@ -178,7 +179,7 @@ void loop() {
       totals[i] -= readings[i][readIndices[i]]; // remove the the value at the fader index for averaging
       readings[i][readIndices[i]] = analogValue; // insert the current analog value into the averaging array
       totals[i] += analogValue; //add the new value to the totals
-      readIndices[i] = (readIndices[i] + 1) % AVERAGE_SAMPLES; // I don't like this running average method. I plan to change it
+      readIndices[i] = (readIndices[i] + 1) % AVERAGE_SAMPLES;
       int average = totals[i] / AVERAGE_SAMPLES;
       int midiValue = map(average, 0, 1023, 0, 128);
 
@@ -212,7 +213,6 @@ void loop() {
           buttonPressTime = millis(); // log the time the display changed for timeout purposes below
           activeFader = i;
           }
-        
         lastButtonStates[i] = buttonState;
       }
     }
@@ -235,7 +235,8 @@ void loop() {
       totals[i] += analogValue;
       readIndices[i] = (readIndices[i] + 1) % AVERAGE_SAMPLES;
       int average = totals[i] / AVERAGE_SAMPLES;
-      int value = map(average, 0, 1023, 0, 127);
+      int value = map(average, 0, 1023, 0, 128);
+      value == 128 ? value = 127 : value = value;
 
       if (value != lastFaderValues[i]) {
         if (programMode == 1) {
@@ -247,11 +248,13 @@ void loop() {
           programFader = i;
           display.showNumberDec(value, false, 3, 1); // Show CC value
         } else if (programMode == 3) {
-          value =  map(average, 0, 1023, 1, 16); 
+          value =  map(average, 0, 1023, 1, 17);
+          value == 17 ? value = 16 : value = value; 
           midiChannel = value;
           programFader = i;
           display.showNumberDec(value, true, 2, 2); // Show channel (01-16)
-          value = map(average, 0, 1023, 0, 127);
+          value = map(average, 0, 1023, 0, 128);
+          value == 128 ? value = 127 : value = value;
         }
         lastFaderValues[i] = value;
         lastProgramActivity = millis(); // Update activity time
