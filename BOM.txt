@@ -1,0 +1,21 @@
+BOM
+
+Caps:
+8 - 100nF Ceramic
+1 - 100uF Electrolytic
+
+Pots:
+8 - 10K Linear Slide Potentiometers
+
+Resistors:
+9 - 10K
+
+Switches:
+8 - SPDT Toggle (These can be tactile buttons as well, see FAQ)
+
+Buttons:
+1 - Normally Open Tactile Switches
+
+ICs:
+1 - Pro Micro Development Board
+1 - CD4051BE

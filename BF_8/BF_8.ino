@@ -92,7 +92,7 @@ unsigned long lastProgramActivity = 0; // Track last activity for timeout
 int programFader = -1; // Fader being programmed
 
 void setup() {
-  // Initialize pins
+   // Initialize pins
   pinMode(CD4051_INH, OUTPUT);
   pinMode(CD4051_A, OUTPUT);
   pinMode(CD4051_B, OUTPUT);
@@ -133,7 +133,6 @@ void setup() {
 }
 
 void loop() {
-  Serial.println(activeFader);
   // Handle program button
   programButton.update();
   if (programButton.rose()) { //Only trigger button on rising edge
@@ -152,7 +151,6 @@ void loop() {
 
   // Check for program mode timeout
   if (programMode != 0 && millis() - lastProgramActivity > PROGRAM_TIMEOUT) { // Check if we're in a program mode and the timeout period has elapsed
-    if (programFader >= 0) {
       // Save settings if changes were made
       if (programMode == 1) {
         EEPROM.update(programFader, ccFaders[programFader]);
@@ -161,7 +159,6 @@ void loop() {
       } else if (programMode == 3) {
         EEPROM.update(NUM_FADERS * 2, midiChannel);
       }
-    }
     programMode = 0; // Exit program mode
     display.clear();
     updateDisplay(lastFaderValues[activeFader]); // Restore fader value
@@ -176,7 +173,7 @@ void loop() {
       digitalWrite(CD4051_C, (i >> 2) & 0x01);
       //Original filter
       int analogValue = analogRead(ANALOG_PIN);//read the analog pin
-      totals[i] -= readings[i][readIndices[i]]; // remove the the value at the fader index for averaging
+      totals[i] -= readings[i][readIndices[i]]; // remove the value at the fader index for averaging
       readings[i][readIndices[i]] = analogValue; // insert the current analog value into the averaging array
       totals[i] += analogValue; //add the new value to the totals
       readIndices[i] = (readIndices[i] + 1) % AVERAGE_SAMPLES;
@@ -268,12 +265,12 @@ void loop() {
 
 // Send MIDI CC message
 void sendMIDI(byte cc, byte value) {
-  midiEventPacket_t midiPacket = {0x0B, 0xB0 | (midiChannel - 1), cc, value};
+  midiEventPacket_t midiPacket = {0x0B, 0xB0 | (midiChannel - 1), cc, value}; // Header (cable + command), byte1 (command + channel), cc, value
   MidiUSB.sendMIDI(midiPacket);
   MidiUSB.flush();
 }
 
 // Update TM1637 display with MIDI value (0-127)
 void updateDisplay(int value) {
-  display.showNumberDec(value, false, 3, 1); // Show "_127" on right 3 digits
+  display.showNumberDec(value, false, 3, 1); // Value, leading zeroes, length, starting position from left
 }
